@@ -5,7 +5,7 @@
 import * as storage from '../utils/storage.js';
 
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
-const DEFAULT_MODEL = 'gemini-2.5-pro-preview-05-06';
+const DEFAULT_MODEL = 'gemini-2.5-flash';
 
 export function getApiKey() {
   return storage.get('api_key', '');
@@ -83,7 +83,7 @@ export async function textToSpeech(text, voiceName = 'Puck', lang = 'vi') {
     id: 'Baca dalam bahasa Indonesia dengan intonasi alami.'
   };
 
-  const response = await fetch(`${API_BASE}/models/gemini-2.5-flash-preview-tts:generateContent?key=${key}`, {
+  const response = await fetch(`${API_BASE}/models/gemini-2.5-flash:generateContent?key=${key}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
