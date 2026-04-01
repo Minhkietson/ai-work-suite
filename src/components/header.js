@@ -44,7 +44,7 @@ export function renderHeader(activeTab) {
         </button>
         <button class="action-btn" id="api-key-btn">
           ${icons.key}
-          <span>SET API KEY</span>
+          <span>API KEY MIỄN PHÍ</span>
         </button>
         <button class="lang-btn" id="lang-display-btn">
           ${icons.globe}
