@@ -10,5 +10,10 @@
   },
   "devDependencies": {
     "vite": "^8.0.1"
+  },
+  "dependencies": {
+    "docx": "^9.6.1",
+    "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5"
   }
 }

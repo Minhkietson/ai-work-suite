@@ -5,6 +5,8 @@
 import { icons } from '../utils/icons.js';
 import { showToast } from '../utils/toast.js';
 import { transcribeAudio, getApiKey } from '../api/gemini.js';
+import { requirePremium, isPremium, premiumBadge } from '../utils/premium.js';
+import { exportToSrt } from '../utils/export.js';
 
 let mediaRecorder = null;
 let audioChunks = [];
@@ -54,6 +56,8 @@ export function render() {
           <div class="audio-actions" id="result-actions" style="display: none; margin-top: 16px;">
             <button class="btn-secondary" id="copy-result">${icons.copy} Sao chép</button>
             <button class="btn-secondary" id="download-result">${icons.download} Tải TXT</button>
+            <button class="btn-secondary ${isPremium() ? '' : 'btn-premium-locked'}" id="summary-result">${icons.sparkles} AI Tóm tắt ${isPremium() ? '' : premiumBadge()}</button>
+            <button class="btn-secondary ${isPremium() ? '' : 'btn-premium-locked'}" id="download-srt">${icons.download} Xuất SRT ${isPremium() ? '' : premiumBadge()}</button>
           </div>
         </div>
       </div>
@@ -113,6 +117,25 @@ export function init() {
       const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
       downloadBlob(blob, 'transcript.txt');
       showToast('Đã tải file!', 'success');
+    }
+  });
+
+  // Premium: AI Summary
+  document.getElementById('summary-result')?.addEventListener('click', () => {
+    if (!requirePremium('stt_summary')) return;
+    const text = document.getElementById('result-area')?.querySelector('.transcript')?.textContent;
+    if (text) {
+      showToast('Tính năng AI Tóm tắt sẽ sớm khả dụng!', 'info');
+    }
+  });
+
+  // Premium: SRT Export
+  document.getElementById('download-srt')?.addEventListener('click', () => {
+    if (!requirePremium('stt_srt_export')) return;
+    const text = document.getElementById('result-area')?.querySelector('.transcript')?.textContent;
+    if (text) {
+      exportToSrt(text, 'transcript.srt');
+      showToast('Đã xuất phụ đề SRT!', 'success');
     }
   });
 }

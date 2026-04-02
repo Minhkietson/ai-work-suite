@@ -3,14 +3,19 @@
 // ============================================
 
 import { icons } from '../utils/icons.js';
+import { isPremium } from '../utils/premium.js';
+import { t, getLang, getSupportedLangs } from '../utils/i18n.js';
 
 export function renderHeader(activeTab) {
   const tabs = [
-    { id: 'speech-to-text', label: 'Chuyển Âm thanh', icon: icons.mic },
-    { id: 'text-to-speech', label: 'Đọc Văn bản', icon: icons.speaker },
-    { id: 'screen-record', label: 'Quay Màn hình', icon: icons.screenRecord },
-    { id: 'doc-processor', label: 'Chuyển đổi File', icon: icons.fileConvert },
+    { id: 'speech-to-text', label: t('nav.stt'), icon: icons.mic },
+    { id: 'text-to-speech', label: t('nav.tts'), icon: icons.speaker },
+    { id: 'screen-record', label: t('nav.record'), icon: icons.screenRecord },
+    { id: 'doc-processor', label: t('nav.doc'), icon: icons.fileConvert },
   ];
+
+  const currentLang = getLang();
+  const langShort = getSupportedLangs().find(l => l.code === currentLang)?.short || 'VI';
 
   return `
     <header class="header" id="app-header">
@@ -20,8 +25,8 @@ export function renderHeader(activeTab) {
         </button>
         <div class="logo-icon">AI</div>
         <div class="logo-text">
-          <span class="brand">AI WORK SUITE</span>
-          <span class="sub">Bộ công cụ phục vụ công việc</span>
+          <span class="brand">${t('app.title').toUpperCase()}</span>
+          <span class="sub">${t('app.subtitle')}</span>
         </div>
       </div>
 
@@ -39,16 +44,20 @@ export function renderHeader(activeTab) {
       </nav>
 
       <div class="header-actions">
-        <button class="action-btn settings-btn" id="settings-btn" title="Cài đặt giao diện">
+        <button class="action-btn settings-btn" id="settings-btn" title="${t('nav.settings')}">
           ${icons.settings}
         </button>
         <button class="action-btn" id="api-key-btn">
           ${icons.key}
-          <span>API KEY MIỄN PHÍ</span>
+          <span>${t('nav.apiKey')}</span>
         </button>
+        ${isPremium() 
+          ? '<span class="header-premium-badge">⭐ Premium</span>' 
+          : `<button class="action-btn" id="upgrade-btn" title="${t('premium.upgrade')}">⭐</button>`
+        }
         <button class="lang-btn" id="lang-display-btn">
           ${icons.globe}
-          <span>VI</span>
+          <span>${langShort}</span>
         </button>
       </div>
     </header>

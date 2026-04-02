@@ -5,6 +5,8 @@
 import { icons } from '../utils/icons.js';
 import { showToast } from '../utils/toast.js';
 import { analyzeDocument, getApiKey } from '../api/gemini.js';
+import { requirePremium, isPremium, premiumBadge } from '../utils/premium.js';
+import { exportToDocx, exportToXlsx } from '../utils/export.js';
 
 let selectedFile = null;
 let currentFormat = 'word';
@@ -67,7 +69,9 @@ export function render() {
         <div class="result-area" id="doc-result-area"></div>
         <div class="audio-actions" style="margin-top: 16px;">
           <button class="btn-secondary" id="doc-copy-result">${icons.copy} Sao chép</button>
-          <button class="btn-secondary" id="doc-download-result">${icons.download} Tải xuống</button>
+          <button class="btn-secondary" id="doc-download-result">${icons.download} Tải TXT/CSV</button>
+          <button class="btn-secondary ${isPremium() ? '' : 'btn-premium-locked'}" id="doc-download-docx">${icons.download} Xuất DOCX ${isPremium() ? '' : premiumBadge()}</button>
+          <button class="btn-secondary ${isPremium() ? '' : 'btn-premium-locked'}" id="doc-download-xlsx">${icons.download} Xuất XLSX ${isPremium() ? '' : premiumBadge()}</button>
         </div>
       </div>
     </div>
@@ -119,15 +123,40 @@ export function init() {
     }
   });
 
-  // Download
+  // Download TXT/CSV (free)
   document.getElementById('doc-download-result')?.addEventListener('click', () => {
     const text = document.getElementById('doc-result-area')?.querySelector('.transcript')?.textContent;
     if (!text) return;
-    
     const ext = { word: 'txt', excel: 'csv', pptx: 'txt' };
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     downloadBlob(blob, `converted.${ext[currentFormat] || 'txt'}`);
     showToast('Đã tải file!', 'success');
+  });
+
+  // Premium: DOCX
+  document.getElementById('doc-download-docx')?.addEventListener('click', async () => {
+    if (!requirePremium('doc_download_docx')) return;
+    const text = document.getElementById('doc-result-area')?.querySelector('.transcript')?.textContent;
+    if (!text) return;
+    try {
+      await exportToDocx(text, 'document.docx');
+      showToast('Đã xuất file Word (DOCX)!', 'success');
+    } catch (err) {
+      showToast('Lỗi xuất DOCX: ' + err.message, 'error');
+    }
+  });
+
+  // Premium: XLSX
+  document.getElementById('doc-download-xlsx')?.addEventListener('click', async () => {
+    if (!requirePremium('doc_download_xlsx')) return;
+    const text = document.getElementById('doc-result-area')?.querySelector('.transcript')?.textContent;
+    if (!text) return;
+    try {
+      await exportToXlsx(text, 'data.xlsx');
+      showToast('Đã xuất file Excel (XLSX)!', 'success');
+    } catch (err) {
+      showToast('Lỗi xuất XLSX: ' + err.message, 'error');
+    }
   });
 }
 

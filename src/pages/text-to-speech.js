@@ -5,6 +5,8 @@
 import { icons } from '../utils/icons.js';
 import { showToast } from '../utils/toast.js';
 import { textToSpeech, getApiKey } from '../api/gemini.js';
+import { requirePremium, isPremium, premiumBadge } from '../utils/premium.js';
+import { exportAudioAsMP3 } from '../utils/export.js';
 
 let currentVoice = 'Puck';
 let currentLang = 'vi';
@@ -55,7 +57,8 @@ export function render() {
           <div class="audio-player" id="audio-player" style="display: none;">
             <audio controls id="tts-audio"></audio>
             <div class="audio-actions">
-              <button class="btn-secondary" id="download-audio">${icons.download} Tải MP3</button>
+              <button class="btn-secondary" id="download-audio">${icons.download} Tải WAV</button>
+              <button class="btn-secondary ${isPremium() ? '' : 'btn-premium-locked'}" id="download-mp3">${icons.download} Tải MP3 ${isPremium() ? '' : premiumBadge()}</button>
             </div>
           </div>
         </div>
@@ -106,14 +109,23 @@ export function init() {
   // Process
   document.getElementById('tts-process-btn')?.addEventListener('click', generateSpeech);
 
-  // Download
+  // Download WAV
   document.getElementById('download-audio')?.addEventListener('click', () => {
     if (generatedAudioUrl) {
       const a = document.createElement('a');
       a.href = generatedAudioUrl;
       a.download = 'ai-speech.wav';
       a.click();
-      showToast('Đã tải file audio!', 'success');
+      showToast('Đã tải file audio WAV!', 'success');
+    }
+  });
+
+  // Premium: Download MP3
+  document.getElementById('download-mp3')?.addEventListener('click', () => {
+    if (!requirePremium('tts_download_mp3')) return;
+    if (generatedAudioUrl) {
+      exportAudioAsMP3(generatedAudioUrl, 'ai-speech.mp3');
+      showToast('Đã tải file MP3!', 'success');
     }
   });
 }

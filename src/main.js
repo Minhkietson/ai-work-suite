@@ -4,12 +4,15 @@
 // ============================================
 
 import './style.css';
+import { showUpgradePrompt } from './utils/premium.js';
+import { t, getLang, setLang, getSupportedLangs } from './utils/i18n.js';
 import * as storage from './utils/storage.js';
 import { renderHeader } from './components/header.js';
 import { renderSettings, initSettings } from './components/settings.js';
 import { renderApiKeyModal, initApiKeyModal } from './components/api-key-modal.js';
 
 // Page modules
+import * as Landing from './pages/landing.js';
 import * as SpeechToText from './pages/speech-to-text.js';
 import * as TextToSpeech from './pages/text-to-speech.js';
 import * as ScreenRecord from './pages/screen-record.js';
@@ -17,13 +20,16 @@ import * as DocProcessor from './pages/doc-processor.js';
 
 // ---------- Page Registry ----------
 const PAGES = {
+  'landing': Landing,
   'speech-to-text': SpeechToText,
   'text-to-speech': TextToSpeech,
   'screen-record': ScreenRecord,
   'doc-processor': DocProcessor,
 };
 
-let currentPage = 'speech-to-text';
+const APP_PAGES = ['speech-to-text', 'text-to-speech', 'screen-record', 'doc-processor'];
+
+let currentPage = 'landing';
 
 // ---------- Initialize Theme ----------
 function initTheme() {
@@ -38,8 +44,8 @@ function initTheme() {
 
 // ---------- Router ----------
 function getPageFromHash() {
-  const hash = window.location.hash.replace('#', '') || 'speech-to-text';
-  return PAGES[hash] ? hash : 'speech-to-text';
+  const hash = window.location.hash.replace('#', '') || 'landing';
+  return PAGES[hash] ? hash : 'landing';
 }
 
 function navigate(pageId) {
@@ -53,28 +59,43 @@ function navigate(pageId) {
 function renderApp() {
   const app = document.getElementById('app');
   const page = PAGES[currentPage];
+  const isAppPage = APP_PAGES.includes(currentPage);
 
   app.innerHTML = `
     <div class="app-bg"></div>
-    ${renderHeader(currentPage)}
-    <main class="main-content">
+    ${isAppPage ? renderHeader(currentPage) : ''}
+    <main class="${isAppPage ? 'main-content' : 'landing-content'}">
       ${page.render()}
     </main>
     <footer class="footer">
-      <p>© 2026 AI Work Suite — Tạo bởi <strong>Trịnh Ngọc Hà</strong> | Powered by Google Gemini</p>
+      <p>${t('app.footer')}</p>
     </footer>
-    ${renderSettings()}
-    ${renderApiKeyModal()}
+    ${isAppPage ? renderSettings() : ''}
+    ${isAppPage ? renderApiKeyModal() : ''}
   `;
 
   // Init page
   page.init();
   
-  // Init global components
-  initSettings();
-  initApiKeyModal();
-  initNavigation();
-  initMobileMenu();
+  // Init global components (only for app pages)
+  if (isAppPage) {
+    initSettings();
+    initApiKeyModal();
+    initNavigation();
+    initMobileMenu();
+    
+    // Premium upgrade button
+    document.getElementById('upgrade-btn')?.addEventListener('click', showUpgradePrompt);
+    
+    // Language toggle
+    document.getElementById('lang-display-btn')?.addEventListener('click', () => {
+      const langs = getSupportedLangs();
+      const currentIdx = langs.findIndex(l => l.code === getLang());
+      const nextLang = langs[(currentIdx + 1) % langs.length];
+      setLang(nextLang.code);
+      renderApp();
+    });
+  }
 }
 
 // ---------- Navigation ----------
